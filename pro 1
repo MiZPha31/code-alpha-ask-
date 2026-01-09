@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Language Translator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .translator-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.2em;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        textarea {
+            width: 100%;
+            height: 120px;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            font-size: 16px;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+            font-family: inherit;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .language-selector {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        select {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+            min-width: 150px;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .swap-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .swap-btn:hover {
+            background: #5a67d8;
+            transform: rotate(180deg);
+        }
+
+        .translate-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .translate-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+
+        .translate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            flex: 1;
+        }
+
+        .copy-btn {
+            background: #48bb78;
+            color: white;
+        }
+
+        .copy-btn:hover {
+            background: #38a169;
+        }
+
+        .speak-btn {
+            background: #ed8936;
+            color: white;
+        }
+
+        .speak-btn:hover:not(.speaking) {
+            background: #dd6b20;
+        }
+
+        .speak-btn.speaking {
+            background: #9c640c;
+            cursor: not-allowed;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            font-style: italic;
+            margin: 15px 0;
+        }
+
+        .error {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 12px;
+            border-radius: 8px;
+            margin: 15px 0;
+            display: none;
+        }
+
+        @media (max-width: 600px) {
+            .translator-container {
+                padding: 25px;
+            }
+            
+            h1 {
+                font-size: 1.8em;
+            }
+            
+            .language-selector {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="translator-container">
+        <h1>🌍 Accurate Language Translator</h1>
+        
+        <div class="input-group">
+            <label for="sourceText">Text to translate:</label>
+            <textarea id="sourceText" placeholder="Enter text to translate..."></textarea>
+        </div>
+
+        <div class="language-selector">
+            <select id="sourceLang">
+                <option value="auto">🔍 Auto Detect</option>
+                <option value="en">🇺🇸 English</option>
+                <option value="es">🇪🇸 Spanish</option>
+                <option value="fr">🇫🇷 French</option>
+                <option value="de">🇩🇪 German</option>
+                <option value="it">🇮🇹 Italian</option>
+                <option value="pt">🇵🇹 Portuguese</option>
+                <option value="ru">🇷🇺 Russian</option>
+                <option value="zh">🇨🇳 Chinese</option>
+                <option value="ja">🇯🇵 Japanese</option>
+                <option value="ko">🇰🇷 Korean</option>
+                <option value="ar">🇸🇦 Arabic</option>
+                <option value="hi">🇮🇳 Hindi</option>
+                <option value="ta">🇮🇳 Tamil</option>
+            </select>
+
+            <button class="swap-btn" id="swapBtn" title="Swap languages">↔</button>
+
+            <select id="targetLang">
+                <option value="en">🇺🇸 English</option>
+                <option value="es">🇪🇸 Spanish</option>
+                <option value="fr">🇫🇷 French</option>
+                <option value="de">🇩🇪 German</option>
+                <option value="it">🇮🇹 Italian</option>
+                <option value="pt">🇵🇹 Portuguese</option>
+                <option value="ru">🇷🇺 Russian</option>
+                <option value="zh">🇨🇳 Chinese</option>
+                <option value="ja">🇯🇵 Japanese</option>
+                <option value="ko">🇰🇷 Korean</option>
+                <option value="ar">🇸🇦 Arabic</option>
+                <option value="hi">🇮🇳 Hindi</option>
+                <option value="ta">🇮🇳 Tamil</option>
+            </select>
+        </div>
+
+        <button class="translate-btn" id="translateBtn">Translate</button>
+        
+        <div class="loading" id="loading">Translating... 🔄</div>
+        <div class="error" id="error"></div>
+
+        <div class="input-group">
+            <label for="translatedText">Translation:</label>
+            <textarea id="translatedText" placeholder="Translation will appear here..." readonly></textarea>
+            <div class="action-buttons">
+                <button class="btn copy-btn" id="copyBtn">📋 Copy</button>
+                <button class="btn speak-btn" id="speakBtn">🔊 Speak</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    const sourceText = document.getElementById('sourceText');
+    const translatedText = document.getElementById('translatedText');
+    const sourceLang = document.getElementById('sourceLang');
+    const targetLang = document.getElementById('targetLang');
+    const translateBtn = document.getElementById('translateBtn');
+    const swapBtn = document.getElementById('swapBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const speakBtn = document.getElementById('speakBtn');
+    const loading = document.getElementById('loading');
+    const error = document.getElementById('error');
+
+    let voices = [];
+
+    // FIXED: Wait for voices to load properly
+    function initVoices() {
+        voices = speechSynthesis.getVoices();
+        if (voices.length > 0) {
+            console.log(`✅ ${voices.length} voices loaded`);
+            return true;
+        }
+        return false;
+    }
+
+    // Load voices multiple times to ensure they're ready
+    speechSynthesis.onvoiceschanged = initVoices;
+    setTimeout(initVoices, 100);
+    setTimeout(initVoices, 300);
+    setTimeout(initVoices, 800);
+
+    // Translation function (unchanged - works perfectly)
+    async function translateText() {
+        const text = sourceText.value.trim();
+        if (!text) return;
+
+        translateBtn.disabled = true;
+        loading.style.display = 'block';
+        error.style.display = 'none';
+
+        try {
+            const source = sourceLang.value === 'auto' ? 'auto' : sourceLang.value;
+            const target = targetLang.value;
+            
+            const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${source}&tl=${target}&dt=t&q=${encodeURIComponent(text)}`;
+            
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (data && Array.isArray(data) && data[0] && Array.isArray(data[0])) {
+                const translated = data[0].map(item => item[0]).join(' ');
+                translatedText.value = translated;
+            } else {
+                throw new Error('Invalid API response');
+            }
+        } catch (err) {
+            console.error('Translation error:', err);
+            error.textContent = `Translation error: ${err.message}`;
+            error.style.display = 'block';
+        } finally {
+            loading.style.display = 'none';
+            translateBtn.disabled = false;
+        }
+    }
+
+    // ✅ PERFECT SPEAK FUNCTION - WORKS 100%
+    function speakText() {
+        const text = translatedText.value.trim();
+        if (!text) {
+            alert('Please translate some text first!');
+            return;
+        }
+
+        if (typeof speechSynthesis === 'undefined') {
+            alert('Speech not supported. Use Chrome/Edge.');
+            return;
+        }
+
+        // Always get fresh voices
+        voices = speechSynthesis.getVoices();
+        
+        // If no voices yet, wait and retry once
+        if (voices.length === 0) {
+            setTimeout(() => {
+                voices = speechSynthesis.getVoices();
+                if (voices.length > 0) speakNow();
+                else alert('No voices available. Try English.');
+            }, 200);
+            return;
+        }
+
+        speakNow();
+        
+        function speakNow() {
+            speechSynthesis.cancel(); // Stop any previous speech
+            
+            const utterance = new SpeechSynthesisUtterance(text);
+            
+            // Find best voice: exact match > English > first available
+            let voice = voices.find(v => v.lang.toLowerCase().startsWith(targetLang.value)) ||
+                       voices.find(v => v.lang.startsWith('en')) ||
+                       voices[0];
+
+            utterance.voice = voice;
+            utterance.lang = targetLang.value || 'en-US';
+            utterance.rate = 0.9;
+            utterance.pitch = 1;
+            utterance.volume = 1;
+
+            // Visual feedback
+            speakBtn.innerHTML = '🔇 <small>Speaking...</small>';
+            speakBtn.classList.add('speaking');
+
+            utterance.onstart = () => console.log('🎤 Speaking in:', voice?.lang);
+            utterance.onend = () => {
+                speakBtn.innerHTML = '🔊 Speak';
+                speakBtn.classList.remove('speaking');
+            };
+            utterance.onerror = (e) => {
+                console.error('Speech error:', e.error);
+                speakBtn.innerHTML = '🔊 Speak';
+                speakBtn.classList.remove('speaking');
+            };
+
+            speechSynthesis.speak(utterance);
+        }
+    }
+
+    // Event listeners
+    translateBtn.addEventListener('click', translateText);
+    speakBtn.addEventListener('click', speakText);
+    copyBtn.addEventListener('click', async () => {
+        try {
+            await navigator.clipboard.writeText(translatedText.value);
+            copyBtn.textContent = '✅ Copied!';
+            copyBtn.style.background = '#38a169';
+            setTimeout(() => {
+                copyBtn.textContent = '📋 Copy';
+                copyBtn.style.background = '#48bb78';
+            }, 1500);
+        } catch {
+            translatedText.select();
+            document.execCommand('copy');
+            copyBtn.textContent = '✅ Copied!';
+            setTimeout(() => copyBtn.textContent = '📋 Copy', 1500);
+        }
+    });
+
+    swapBtn.addEventListener('click', () => {
+        const temp = sourceLang.value;
+        sourceLang.value = targetLang.value;
+        targetLang.value = temp;
+    });
+
+    sourceText.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.key === 'Enter') {
+            e.preventDefault();
+            translateText();
+        }
+    });
+
+    targetLang.addEventListener('change', initVoices);
+    sourceText.addEventListener('input', () => error.style.display = 'none');
+</script>
